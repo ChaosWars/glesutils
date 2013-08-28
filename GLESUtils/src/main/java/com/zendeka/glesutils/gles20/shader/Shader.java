@@ -28,6 +28,15 @@ public final class Shader {
         mTag = tag;
     }
 
+    public void release() {
+        if (isCompiled()) {
+            GLES20.glDeleteShader(mName);
+            mName = 0;
+        }
+
+        detachFromPrograms();
+    }
+
     public Type getType() {
         return mType;
     }
@@ -76,7 +85,7 @@ public final class Shader {
         mName = GLES20.glCreateShader(type);
 
         if (mName < 1) {
-            throw new IllegalStateException("Failed to create OpenGL ES " + shaderType + " shader");
+            throw new IllegalStateException("(" + mTag + ") Failed to create OpenGL ES " + shaderType + " shader");
         }
 
         GLES20.glShaderSource(mName, mSource);
@@ -116,12 +125,14 @@ public final class Shader {
 
     public void unload() throws IllegalStateException {
         if (!isCompiled()) {
-            throw new IllegalStateException(getShaderTypeString() + " shader is not compiled");
+            throw new IllegalStateException(getShaderTypeString() + " (" + mTag + ") shader is not compiled");
         }
 
-        GLES20.glDeleteShader(mName);
-        mName = 0;
-        mAttachedPrograms.clear();
+        detachFromPrograms();
+    }
+
+    public boolean isAttachedToProgram(final int program) {
+        return mAttachedPrograms.get(program) != 0;
     }
 
     public void attachToProgram(final int program) throws IllegalArgumentException, IllegalStateException {
@@ -130,11 +141,11 @@ public final class Shader {
         }
 
         if (!isCompiled()) {
-            throw new IllegalStateException(getShaderTypeString() + " shader is not compiled");
+            throw new IllegalStateException(getShaderTypeString() + " (" + mTag + ") shader is not compiled");
         }
 
-        if (mAttachedPrograms.get(program) != 0) {
-            throw new IllegalArgumentException("Already attached to program " + program);
+        if (isAttachedToProgram(program)) {
+            throw new IllegalArgumentException(getShaderTypeString() + " (" + mTag + ") already attached to program " + program);
         }
 
         GLES20.glAttachShader(program, mName);
@@ -150,15 +161,24 @@ public final class Shader {
             throw new IllegalStateException("Invalid OpenGL ES shader name");
         }
 
-        if (mAttachedPrograms.get(program) == 0) {
-            throw new IllegalArgumentException(getShaderTypeString() + " shader not attached to program " + program);
+        if (!isAttachedToProgram(program)) {
+            throw new IllegalArgumentException(getShaderTypeString() + " (" + mTag + ")" + " shader not attached to program " + program);
         }
 
         GLES20.glDetachShader(program, mName);
         mAttachedPrograms.delete(program);
     }
 
-    public boolean isAttachedToProgram(final int program) {
-        return mAttachedPrograms.get(program) != 0;
+    private void detachFromPrograms() {
+        for (int index = 0; index < mAttachedPrograms.size(); ++index) {
+            int key = mAttachedPrograms.keyAt(index);
+            int program = mAttachedPrograms.get(key);
+
+            if (isAttachedToProgram(program)) {
+                detachFromProgram(program);
+            }
+        }
+
+        mAttachedPrograms.clear();
     }
 }

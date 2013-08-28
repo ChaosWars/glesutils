@@ -51,8 +51,8 @@ public class VertexBufferObject {
         mUsage = usage;
 
         IntBuffer buffers = IntBuffer.allocate(1);
-        buffers.put(mName);
         GLES20.glGenBuffers(1, buffers);
+        mName = buffers.get(0);
     }
 
     public VertexBufferObject(final Target target, final Usage usage, Buffer data, int size) throws IllegalStateException {
@@ -60,12 +60,21 @@ public class VertexBufferObject {
         mUsage = usage;
 
         IntBuffer buffers = IntBuffer.allocate(1);
-        buffers.put(mName);
         GLES20.glGenBuffers(1, buffers);
+        mName = buffers.get(0);
 
         bind();
 
         allocateAndBufferData(size, data);
+    }
+
+    public void release() {
+        if (mName > 0) {
+            IntBuffer buffers = IntBuffer.allocate(1);
+            buffers.put(0, mName);
+
+            GLES20.glDeleteBuffers(1, buffers);
+        }
     }
 
     public Target getBufferTarget() {
@@ -90,7 +99,7 @@ public class VertexBufferObject {
         }
 
         IntBuffer buffers = IntBuffer.allocate(1);
-        buffers.put(mName);
+        buffers.put(0, mName);
 
         GLES20.glDeleteBuffers(1, buffers);
     }

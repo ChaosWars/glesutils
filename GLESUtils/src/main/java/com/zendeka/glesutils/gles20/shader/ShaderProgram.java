@@ -7,6 +7,7 @@ import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public final class ShaderProgram {
         }
 
         @Override
-        public int getLocation(int program, String name) throws IllegalArgumentException {
+        public int getLocation(int program, String name) {
             return GLES20.glGetUniformLocation(program, name);
         }
     }
@@ -38,28 +39,43 @@ public final class ShaderProgram {
         }
 
         @Override
-        public int getLocation(int program, String name) throws IllegalArgumentException {
+        public int getLocation(int program, String name) {
             return GLES20.glGetAttribLocation(program, name);
         }
     }
 
     private String mTag;
+
     private List<Shader> mShaders = new ArrayList<Shader>();
+
     private int mName;
+
     private String mBuildLog;
+
     private boolean mValid;
     private String mValidationLog;
-    private Map<String, Integer> mUniformLocations;
-    private Map<String, Integer> mAttributeLocations;
-    private UniformLocation mUniformLocation;
-    private  AttributeLocation mAttributeLocation;
+
+    private Map<String, Integer> mUniformLocations = new HashMap<String, Integer>();
+    private Map<String, Integer> mAttributeLocations = new HashMap<String, Integer>();
+
+    private UniformLocation mUniformLocation = new UniformLocation();
+    private AttributeLocation mAttributeLocation = new AttributeLocation();
+
+    public void release() {
+        unload();
+
+        if (mName > 0) {
+            GLES20.glDeleteProgram(mName);
+            mName = 0;
+        }
+    }
 
     public void setTag(final String tag) {
         mTag = tag;
     }
 
     public boolean isBuilt() {
-        return mName != 0;
+        return mName > 0;
     }
 
     public String getBuildLog() {
@@ -74,6 +90,14 @@ public final class ShaderProgram {
         mShaders.add(shader);
     }
 
+    public void removeShader(final Shader shader) {
+        if (shader.isAttachedToProgram(mName)) {
+            shader.detachFromProgram(mName);
+        }
+
+        mShaders.remove(shader);
+    }
+
     public void build() throws IllegalArgumentException, IllegalStateException {
         if (isBuilt()) {
             return;
@@ -82,7 +106,7 @@ public final class ShaderProgram {
         mName = GLES20.glCreateProgram();
 
         if (mName < 1) {
-            throw new IllegalStateException("Failed to create OpenGL ES shader program");
+            throw new IllegalStateException("(" + mTag + ") Failed to create OpenGL ES shader program");
         }
 
         for (final Shader shader : mShaders) {
@@ -116,10 +140,10 @@ public final class ShaderProgram {
         }
 
         IntBuffer params = IntBuffer.allocate(1);
-        GLES20.glGetShaderiv(mName, GLES20.GL_LINK_STATUS, params);
+        GLES20.glGetProgramiv(mName, GLES20.GL_LINK_STATUS, params);
 
         String infoLog = GLES20.glGetProgramInfoLog(mName);
-        mBuildLog = "Shader program build log: " + infoLog;
+        mBuildLog = "Shader program link log: " + infoLog;
 
         boolean linked = params.get(0) != 0;
 
@@ -167,232 +191,232 @@ public final class ShaderProgram {
         GLES20.glUseProgram(mName);
     }
 
-    public void setUniform(String name, float x) throws IllegalStateException {
+    public void setUniform(String name, float x) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform1f(location, x);
     }
 
-    public void setUniform1fv(String name, int count, FloatBuffer v) throws IllegalStateException {
+    public void setUniform1fv(String name, int count, FloatBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform1fv(location, count, v);
     }
 
-    public void setUniform1fv(String name, int count, float[] v, int offset) throws IllegalStateException {
+    public void setUniform1fv(String name, int count, float[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform1fv(location, count, v, offset);
     }
 
-    public void setUniform(String name, int x) throws IllegalStateException {
+    public void setUniform(String name, int x) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform1i(location, x);
     }
 
-    public void setUniform1iv(String name, int count, IntBuffer v) throws IllegalStateException {
+    public void setUniform1iv(String name, int count, IntBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform1iv(location, count, v);
     }
 
-    public void setUniform1iv(String name, int count, int[] v, int offset) throws IllegalStateException {
+    public void setUniform1iv(String name, int count, int[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform1iv(location, count, v, offset);
     }
 
-    public void setUniform(String name, float x, float y) throws IllegalStateException {
+    public void setUniform(String name, float x, float y) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform2f(location, x, y);
     }
 
-    public void setUniform2fv(String name, int count, FloatBuffer v) throws IllegalStateException {
+    public void setUniform2fv(String name, int count, FloatBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform2fv(location, count, v);
     }
 
-    public void setUniform2fv(String name, int count, float[] v, int offset) throws IllegalStateException {
+    public void setUniform2fv(String name, int count, float[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform2fv(location, count, v, offset);
     }
 
-    public void setUniform(String name, int x, int y) throws IllegalStateException {
+    public void setUniform(String name, int x, int y) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform2i(location, x, y);
     }
 
-    public void setUniform2iv(String name, int count, IntBuffer v) throws IllegalStateException {
+    public void setUniform2iv(String name, int count, IntBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform2iv(location, count, v);
     }
 
-    public void setUniform2iv(String name, int count, int[] v, int offset) throws IllegalStateException {
+    public void setUniform2iv(String name, int count, int[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform2iv(location, count, v, offset);
     }
 
-    public void setUniform(String name, float x, float y, float z) throws IllegalStateException {
+    public void setUniform(String name, float x, float y, float z) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform3f(location, x, y, z);
     }
 
-    public void setUniform3fv(String name, int count, float[] v, int offset) throws IllegalStateException {
+    public void setUniform3fv(String name, int count, float[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform3fv(location, count, v, offset);
     }
 
-    public void setUniform3fv(String name, int count, FloatBuffer v) throws IllegalStateException {
+    public void setUniform3fv(String name, int count, FloatBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform3fv(location, count, v);
     }
 
-    public void setUniform(String name, int x, int y, int z) throws IllegalStateException {
+    public void setUniform(String name, int x, int y, int z) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform3i(location, x, y, z);
     }
 
-    public void setUniform3iv(String name, int count, int[] v, int offset) throws IllegalStateException {
+    public void setUniform3iv(String name, int count, int[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform3iv(location, count, v, offset);
     }
 
-    public void setUniform3iv(String name, int count, IntBuffer v) throws IllegalStateException {
+    public void setUniform3iv(String name, int count, IntBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform3iv(location, count, v);
     }
 
-    public void setUniform(String name, float x, float y, float z, float w) throws IllegalStateException {
+    public void setUniform(String name, float x, float y, float z, float w) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform4f(location, x, y, z, w);
     }
 
-    public void setUniform4fv(String name, int count, FloatBuffer v) throws IllegalStateException {
+    public void setUniform4fv(String name, int count, FloatBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform4fv(location, count, v);
     }
 
-    public void setUniform4fv(String name, int count, float[] v, int offset) throws IllegalStateException {
+    public void setUniform4fv(String name, int count, float[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform4fv(location, count, v, offset);
     }
 
-    public void setUniform(String name, int x, int y, int z, int w) throws IllegalStateException {
+    public void setUniform(String name, int x, int y, int z, int w) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniform4i(location, x, y, z, w);
     }
 
-    public void setUniform4iv(String name, int count, int[] v, int offset) throws IllegalStateException {
+    public void setUniform4iv(String name, int count, int[] v, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20. glUniform4iv(location, count, v, offset);
     }
 
-    public void setUniform4iv(String name, int count, IntBuffer v) throws IllegalStateException {
+    public void setUniform4iv(String name, int count, IntBuffer v) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20. glUniform4iv(location, count, v);
     }
 
-    public void setUniformMatrix2fv(String name, int count, boolean transpose, FloatBuffer value) throws IllegalStateException {
+    public void setUniformMatrix2fv(String name, int count, boolean transpose, FloatBuffer value) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20. glUniformMatrix2fv(location, count, transpose, value);
     }
 
-    public void setUniformMatrix2fv(String name, int count, boolean transpose, float[] value, int offset) throws IllegalStateException {
+    public void setUniformMatrix2fv(String name, int count, boolean transpose, float[] value, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20. glUniformMatrix2fv(location, count, transpose, value, offset);
     }
 
-    public void setUniformMatrix3fv(String name, int count, boolean transpose, float[] value, int offset) throws IllegalStateException {
+    public void setUniformMatrix3fv(String name, int count, boolean transpose, float[] value, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniformMatrix3fv(location, count, transpose, value, offset);
     }
 
-    public void setUniformMatrix3fv(String name, int count, boolean transpose, FloatBuffer value) throws IllegalStateException {
+    public void setUniformMatrix3fv(String name, int count, boolean transpose, FloatBuffer value) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniformMatrix3fv(location, count, transpose, value);
     }
 
-    public void setUniformMatrix4fv(String name, int count, boolean transpose, float[] value, int offset) throws IllegalStateException {
+    public void setUniformMatrix4fv(String name, int count, boolean transpose, float[] value, int offset) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniformMatrix4fv(location, count, transpose, value, offset);
     }
 
-    public void setUniformMatrix4fv(String name, int count, boolean transpose, FloatBuffer value) throws IllegalStateException {
+    public void setUniformMatrix4fv(String name, int count, boolean transpose, FloatBuffer value) throws IllegalArgumentException, IllegalStateException {
         int location = getLocation(name, mUniformLocations, mUniformLocation);
         GLES20.glUniformMatrix4fv(location, count, transpose, value);
     }
 
-    public void setAttribute(String name, float x) throws IllegalStateException {
+    public void setAttribute(String name, float x) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib1f(indx, x);
     }
 
-    public void setAttribute1fv(String name, FloatBuffer values) throws IllegalStateException {
+    public void setAttribute1fv(String name, FloatBuffer values) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib1fv(indx, values);
     }
 
-    public void setAttribute1fv(String name, float[] values, int offset) throws IllegalStateException {
+    public void setAttribute1fv(String name, float[] values, int offset) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib1fv(indx, values, offset);
     }
 
-    public void setAttribute(String name, float x, float y) throws IllegalStateException {
+    public void setAttribute(String name, float x, float y) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib2f(indx, x, y);
     }
 
-    public void setAttribute2fv(String name, float[] values, int offset) throws IllegalStateException {
+    public void setAttribute2fv(String name, float[] values, int offset) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib2fv(indx, values, offset);
     }
 
-    public void setAttribute2fv(String name, FloatBuffer values) throws IllegalStateException {
+    public void setAttribute2fv(String name, FloatBuffer values) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib2fv(indx, values);
     }
 
-    public void setAttribute(String name, float x, float y, float z) throws IllegalStateException {
+    public void setAttribute(String name, float x, float y, float z) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib3f(indx, x, y, z);
     }
 
-    public void setAttribute3fv(String name, FloatBuffer values) throws IllegalStateException {
+    public void setAttribute3fv(String name, FloatBuffer values) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib3fv(indx, values);
     }
 
-    public void setAttribute3fv(String name, float[] values, int offset) throws IllegalStateException {
+    public void setAttribute3fv(String name, float[] values, int offset) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib3fv(indx, values, offset);
     }
 
-    public void setAttribute(String name, float x, float y, float z, float w) throws IllegalStateException {
+    public void setAttribute(String name, float x, float y, float z, float w) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib4f(indx, x, y, z, w);
     }
 
-    public void setAttribute4fv(String name, FloatBuffer values) throws IllegalStateException {
+    public void setAttribute4fv(String name, FloatBuffer values) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib4fv(indx, values);
     }
 
-    public void setAttribute4fv(String name, float[] values, int offset) throws IllegalStateException {
+    public void setAttribute4fv(String name, float[] values, int offset) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttrib4fv(indx, values, offset);
     }
 
-    public void setAttributePointer(String name, int size, int type, boolean normalized, int stride, int offset) throws IllegalStateException {
+    public void setAttributePointer(String name, int size, int type, boolean normalized, int stride, int offset) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttribPointer(indx, size, type, normalized, stride, offset);
     }
 
-    public void setAttributePointer(String name, int size, int type, boolean normalized, int stride, Buffer ptr) throws IllegalStateException {
+    public void setAttributePointer(String name, int size, int type, boolean normalized, int stride, Buffer ptr) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glVertexAttribPointer(indx, size, type, normalized, stride, ptr);
     }
 
-    public void enableAttribute(String name) {
+    public void enableAttribute(String name) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glEnableVertexAttribArray(indx);
     }
 
-    public void disableAttribute(String name) {
+    public void disableAttribute(String name) throws IllegalArgumentException, IllegalStateException {
         int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
         GLES20.glDisableVertexAttribArray(indx);
     }
@@ -402,6 +426,8 @@ public final class ShaderProgram {
             int location = getLocation(name, mAttributeLocations, mAttributeLocation);
             return location >= 0;
         } catch (IllegalArgumentException e) {
+            //Suppress error
+        } catch (IllegalStateException e) {
             //Suppress error
         }
 
@@ -414,12 +440,14 @@ public final class ShaderProgram {
             return location >= 0;
         } catch (IllegalArgumentException e) {
             //Suppress error
+        } catch (IllegalStateException e) {
+            //Suppress error
         }
 
         return false;
     }
 
-    private int getLocation(String name, Map<String, Integer> locations, Location location) throws IllegalStateException, IllegalArgumentException {
+    private int getLocation(String name, Map<String, Integer> locations, Location location) throws IllegalArgumentException, IllegalStateException {
         checkBuilt();
 
         Integer value = locations.get(name);
@@ -431,7 +459,7 @@ public final class ShaderProgram {
         value = location.getLocation(mName, name);
 
         if (value < 0) {
-            throw new IllegalArgumentException(location.getType() + " \"" + name + "\" not found in shader program");
+            throw new IllegalArgumentException(location.getType() + " \"" + name + "\" not found in shader program " + mName + "(" + mTag + ")");
         }
 
         locations.put(name, value);
@@ -440,7 +468,7 @@ public final class ShaderProgram {
 
     private void checkBuilt() throws IllegalStateException {
         if (!isBuilt()) {
-            throw new IllegalStateException("Shader program not built");
+            throw new IllegalStateException("(" + mTag + ") Shader program not built");
         }
     }
 }
