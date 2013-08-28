@@ -1,7 +1,0 @@
-# incremental data. DO NOT EDIT.
-# format is <lastModified> <length> <SHA-1> <path>
-# Encoding is UTF-8
-1376041723278 5237 7761bceaf18ed25cdba5f34bf00a55616d078acf C:\Users\Lawrence\AndroidStudioProjects\GLESUtilsProject\GLESUtils\build\bundles\debug\res\drawable-mdpi\ic_launcher.png
-1376041723278 14383 82acdd75e3fcc36026109406625edc69d4d7212d C:\Users\Lawrence\AndroidStudioProjects\GLESUtilsProject\GLESUtils\build\bundles\debug\res\drawable-xhdpi\ic_launcher.png
-1376041723289 822 6904c68dbc1774e3aabb71e3a5281ba469bc1e99 C:\Users\Lawrence\AndroidStudioProjects\GLESUtilsProject\GLESUtils\build\bundles\debug\res\values\values.xml
-1376041723278 9397 4a5a9affbb731f195fc18fea78d51be7db7536a2 C:\Users\Lawrence\AndroidStudioProjects\GLESUtilsProject\GLESUtils\build\bundles\debug\res\drawable-hdpi\ic_launcher.png
