@@ -47,6 +47,7 @@ public final class ShaderProgram {
     private List<Shader> mShaders = new ArrayList<Shader>();
     private int mName;
     private String mBuildLog;
+    private boolean mValid;
     private String mValidationLog;
     private Map<String, Integer> mUniformLocations;
     private Map<String, Integer> mAttributeLocations;
@@ -140,7 +141,7 @@ public final class ShaderProgram {
         mShaders.clear();
     }
 
-    public boolean isValid() throws IllegalStateException {
+    public void validate() throws IllegalStateException {
         checkBuilt();
         GLES20.glValidateProgram(mName);
 
@@ -150,14 +151,15 @@ public final class ShaderProgram {
         String infoLog = GLES20.glGetProgramInfoLog(mName);
         mValidationLog = "Shader program validation log: " + infoLog;
 
-        boolean valid = params.get(0) != 0;
+        mValid = params.get(0) != 0;
 
-        if (!valid) {
+        if (!mValid) {
             Log.e(mTag, mValidationLog);
-            return false;
         }
+    }
 
-        return true;
+    public boolean isValid() {
+        return mValid;
     }
 
     public void use() throws IllegalStateException {
@@ -385,7 +387,39 @@ public final class ShaderProgram {
         GLES20.glVertexAttribPointer(indx, size, type, normalized, stride, ptr);
     }
 
-    private int getLocation(String name, Map<String, Integer> locations, Location location) throws IllegalStateException {
+    public void enableAttribute(String name) {
+        int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
+        GLES20.glEnableVertexAttribArray(indx);
+    }
+
+    public void disableAttribute(String name) {
+        int indx = getLocation(name, mAttributeLocations, mAttributeLocation);
+        GLES20.glDisableVertexAttribArray(indx);
+    }
+
+    public boolean hasAttribute(String name) {
+        try {
+            int location = getLocation(name, mAttributeLocations, mAttributeLocation);
+            return location >= 0;
+        } catch (IllegalArgumentException e) {
+            //Suppress error
+        }
+
+        return false;
+    }
+
+    public boolean hasUniform(String name) {
+        try {
+            int location = getLocation(name, mUniformLocations, mUniformLocation);
+            return location >= 0;
+        } catch (IllegalArgumentException e) {
+            //Suppress error
+        }
+
+        return false;
+    }
+
+    private int getLocation(String name, Map<String, Integer> locations, Location location) throws IllegalStateException, IllegalArgumentException {
         checkBuilt();
 
         Integer value = locations.get(name);
@@ -401,11 +435,10 @@ public final class ShaderProgram {
         }
 
         locations.put(name, value);
-
         return value;
     }
 
-    private void checkBuilt() {
+    private void checkBuilt() throws IllegalStateException {
         if (!isBuilt()) {
             throw new IllegalStateException("Shader program not built");
         }
