@@ -1,0 +1,46 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.5.+'
+    }
+}
+apply plugin: 'android-library'
+
+version '0.1.0'
+group 'com.zendeka.glesutils'
+
+repositories {
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion "18.0.0"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 18
+        versionCode 1
+        versionName '0.1.0'
+
+    }
+}
+
+dependencies {
+}
+
+archivesBaseName = 'glesutils'
+
+apply plugin: 'maven'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+        }
+    }
+}
+task install(dependsOn: uploadArchives)
+
