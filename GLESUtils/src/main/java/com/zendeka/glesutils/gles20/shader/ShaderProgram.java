@@ -151,9 +151,9 @@ public final class ShaderProgram {
         GLES20.glGetProgramiv(mName, GLES20.GL_LINK_STATUS, params); GLGetError.getOpenGLErrors(mTag);
 
         String infoLog = GLES20.glGetProgramInfoLog(mName); GLGetError.getOpenGLErrors(mTag);
-        mBuildLog = "Shader program link log: " + infoLog;
+        mBuildLog = "(" + mTag + ") Shader program link log: " + infoLog;
 
-        boolean linked = params.get(0) != 0;
+        boolean linked = params.get(0) == GLES20.GL_TRUE;
 
         if (!linked) {
             Log.e(mTag, mBuildLog);
@@ -178,12 +178,12 @@ public final class ShaderProgram {
         GLES20.glValidateProgram(mName); GLGetError.getOpenGLErrors(mTag);
 
         IntBuffer params = IntBuffer.allocate(1);
-        GLES20.glGetShaderiv(mName, GLES20.GL_VALIDATE_STATUS, params); GLGetError.getOpenGLErrors(mTag);
+        GLES20.glGetProgramiv(mName, GLES20.GL_VALIDATE_STATUS, params); GLGetError.getOpenGLErrors(mTag);
 
         String infoLog = GLES20.glGetProgramInfoLog(mName); GLGetError.getOpenGLErrors(mTag);
-        mValidationLog = "Shader program validation log: " + infoLog;
+        mValidationLog = "(" + mTag + ") Shader program validation log: " + infoLog;
 
-        mValid = params.get(0) != 0;
+        mValid = params.get(0) == GLES20.GL_TRUE;
 
         if (!mValid) {
             Log.e(mTag, mValidationLog);
