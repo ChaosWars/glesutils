@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 import android.util.Log;
 import android.util.SparseIntArray;
 
+import com.zendeka.glesutils.utils.GLGetError;
+
 import java.nio.IntBuffer;
 
 /**
@@ -15,12 +17,13 @@ public final class Shader {
         VERTEX
     }
 
-    private Type mType;
+    private final Type mType;
+    private final String mSource;
+    private final String mTag;
+
     private int mName;
-    private String mSource;
     private String mCompileLog;
     private SparseIntArray mAttachedPrograms = new SparseIntArray();
-    private String mTag;
 
     public Shader(final Type type, final String source, final String tag) {
         mType = type;
@@ -30,7 +33,7 @@ public final class Shader {
 
     public void release() {
         if (isCompiled()) {
-            GLES20.glDeleteShader(mName);
+            GLES20.glDeleteShader(mName); GLGetError.getOpenGLErrors(mTag);
             mName = 0;
         }
 
@@ -61,10 +64,6 @@ public final class Shader {
         return mTag;
     }
 
-    public void setTag(final String tag) {
-        mTag = tag;
-    }
-
     public void compile() throws IllegalStateException {
         if (isCompiled()) {
             return;
@@ -82,23 +81,23 @@ public final class Shader {
         }
 
         String shaderType = getShaderTypeString();
-        mName = GLES20.glCreateShader(type);
+        mName = GLES20.glCreateShader(type); GLGetError.getOpenGLErrors(mTag);
 
         if (mName < 1) {
             throw new IllegalStateException("(" + mTag + ") Failed to create OpenGL ES " + shaderType + " shader");
         }
 
-        GLES20.glShaderSource(mName, mSource);
-        GLES20.glCompileShader(mName);
+        GLES20.glShaderSource(mName, mSource); GLGetError.getOpenGLErrors(mTag);
+        GLES20.glCompileShader(mName); GLGetError.getOpenGLErrors(mTag);
 
         IntBuffer params = IntBuffer.allocate(1);
 
-        GLES20.glGetShaderiv(mName, GLES20.GL_COMPILE_STATUS, params);
+        GLES20.glGetShaderiv(mName, GLES20.GL_COMPILE_STATUS, params); GLGetError.getOpenGLErrors(mTag);
 
         boolean compiled = params.get(0) != 0;
 
         if (!compiled) {
-            String infoLog = GLES20.glGetShaderInfoLog(mName);
+            String infoLog = GLES20.glGetShaderInfoLog(mName); GLGetError.getOpenGLErrors(mTag);
             mCompileLog = shaderType + " shader compile log: " + infoLog;
             Log.e(mTag, mCompileLog);
 
@@ -148,7 +147,7 @@ public final class Shader {
             throw new IllegalArgumentException(getShaderTypeString() + " (" + mTag + ") already attached to program " + program);
         }
 
-        GLES20.glAttachShader(program, mName);
+        GLES20.glAttachShader(program, mName); GLGetError.getOpenGLErrors(mTag);
         mAttachedPrograms.put(program, 1);
     }
 
@@ -165,7 +164,7 @@ public final class Shader {
             throw new IllegalArgumentException(getShaderTypeString() + " (" + mTag + ")" + " shader not attached to program " + program);
         }
 
-        GLES20.glDetachShader(program, mName);
+        GLES20.glDetachShader(program, mName); GLGetError.getOpenGLErrors(mTag);
         mAttachedPrograms.delete(program);
     }
 

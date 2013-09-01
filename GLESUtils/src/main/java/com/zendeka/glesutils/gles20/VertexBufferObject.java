@@ -2,6 +2,8 @@ package com.zendeka.glesutils.gles20;
 
 import android.opengl.GLES20;
 
+import com.zendeka.glesutils.utils.GLGetError;
+
 import java.nio.Buffer;
 import java.nio.IntBuffer;
 
@@ -43,6 +45,8 @@ public class VertexBufferObject {
     private final Target mTarget;
     private final Usage mUsage;
 
+    private String mTag;
+
     private int mName;
     private int mSize;
 
@@ -51,7 +55,7 @@ public class VertexBufferObject {
         mUsage = usage;
 
         IntBuffer buffers = IntBuffer.allocate(1);
-        GLES20.glGenBuffers(1, buffers);
+        GLES20.glGenBuffers(1, buffers); GLGetError.getOpenGLErrors(mTag);
         mName = buffers.get(0);
     }
 
@@ -60,7 +64,7 @@ public class VertexBufferObject {
         mUsage = usage;
 
         IntBuffer buffers = IntBuffer.allocate(1);
-        GLES20.glGenBuffers(1, buffers);
+        GLES20.glGenBuffers(1, buffers); GLGetError.getOpenGLErrors(mTag);
         mName = buffers.get(0);
 
         bind();
@@ -73,8 +77,16 @@ public class VertexBufferObject {
             IntBuffer buffers = IntBuffer.allocate(1);
             buffers.put(0, mName);
 
-            GLES20.glDeleteBuffers(1, buffers);
+            GLES20.glDeleteBuffers(1, buffers); GLGetError.getOpenGLErrors(mTag);
         }
+    }
+
+    public String getTag() {
+        return mTag;
+    }
+
+    public void setTag(String tag) {
+        mTag = tag;
     }
 
     public Target getBufferTarget() {
@@ -101,7 +113,7 @@ public class VertexBufferObject {
         IntBuffer buffers = IntBuffer.allocate(1);
         buffers.put(0, mName);
 
-        GLES20.glDeleteBuffers(1, buffers);
+        GLES20.glDeleteBuffers(1, buffers); GLGetError.getOpenGLErrors(mTag);
     }
 
     public void allocate(int size) throws IllegalStateException {
@@ -114,7 +126,7 @@ public class VertexBufferObject {
         }
 
         mSize = size;
-        GLES20.glBufferData(mTarget.getTarget(), size, data, mUsage.getUsage());
+        GLES20.glBufferData(mTarget.getTarget(), size, data, mUsage.getUsage()); GLGetError.getOpenGLErrors(mTag);
     }
 
     public void updateData(int offset, int size, Buffer data) throws IllegalStateException, IllegalArgumentException {
@@ -126,7 +138,7 @@ public class VertexBufferObject {
             throw new IllegalArgumentException("Vertex buffer size exceeded: offset + size > internal size: " + offset + " + " + size + " > " + mSize);
         }
 
-        GLES20.glBufferSubData(mTarget.getTarget(), offset, size, data);
+        GLES20.glBufferSubData(mTarget.getTarget(), offset, size, data); GLGetError.getOpenGLErrors(mTag);
     }
 
     public void bind() throws IllegalStateException {
@@ -134,6 +146,6 @@ public class VertexBufferObject {
             throw new IllegalStateException("Vertex buffer not initialized");
         }
 
-        GLES20.glBindBuffer(mTarget.getTarget(), mName);
+        GLES20.glBindBuffer(mTarget.getTarget(), mName); GLGetError.getOpenGLErrors(mTag);
     }
 }
