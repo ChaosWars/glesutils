@@ -48,7 +48,8 @@ public class VertexBufferObject {
     private String mTag;
 
     private int mName;
-    private int mSize;
+    private int mNumElements;
+    private int mSizeBytes;
 
     public VertexBufferObject(final Target target, final Usage usage) {
         mTarget = target;
@@ -59,7 +60,7 @@ public class VertexBufferObject {
         mName = buffers.get(0);
     }
 
-    public VertexBufferObject(final Target target, final Usage usage, Buffer data, int size) throws IllegalStateException {
+    public VertexBufferObject(final Target target, final Usage usage, Buffer data, int numElements, int sizeBytes) throws IllegalStateException {
         mTarget = target;
         mUsage = usage;
 
@@ -69,7 +70,7 @@ public class VertexBufferObject {
 
         bind();
 
-        allocateAndBufferData(size, data);
+        bufferData(data, numElements, sizeBytes);
     }
 
     public void release() {
@@ -101,8 +102,12 @@ public class VertexBufferObject {
         return mName;
     }
 
-    public int getSize() {
-        return mSize;
+    public int getNumElements() {
+        return mNumElements;
+    }
+
+    public int getSizeBytes() {
+        return mSizeBytes;
     }
 
     public void deleteBuffer() throws IllegalStateException{
@@ -116,29 +121,30 @@ public class VertexBufferObject {
         GLES20.glDeleteBuffers(1, buffers); GLGetError.getOpenGLErrors(mTag);
     }
 
-    public void allocate(int size) throws IllegalStateException {
-        allocateAndBufferData(size, null);
+    public void allocate(int sizeBytes) throws IllegalStateException {
+        bufferData(null, 0, sizeBytes);
     }
 
-    public void allocateAndBufferData(int size, Buffer data) throws IllegalStateException {
+    public void bufferData(Buffer data, int numElements, int sizeBytes) throws IllegalStateException {
         if (mName == 0) {
             throw new IllegalStateException("Vertex buffer not initialized");
         }
 
-        mSize = size;
-        GLES20.glBufferData(mTarget.getTarget(), size, data, mUsage.getUsage()); GLGetError.getOpenGLErrors(mTag);
+        mNumElements = numElements;
+        mSizeBytes = sizeBytes;
+        GLES20.glBufferData(mTarget.getTarget(), sizeBytes, data, mUsage.getUsage()); GLGetError.getOpenGLErrors(mTag);
     }
 
-    public void updateData(int offset, int size, Buffer data) throws IllegalStateException, IllegalArgumentException {
+    public void updateData(Buffer data, int offset, int sizeBytes) throws IllegalStateException, IllegalArgumentException {
         if (mName == 0) {
             throw new IllegalStateException("Vertex buffer not initialized");
         }
 
-        if (offset + size > mSize) {
-            throw new IllegalArgumentException("Vertex buffer size exceeded: offset + size > internal size: " + offset + " + " + size + " > " + mSize);
+        if (offset + sizeBytes > mSizeBytes) {
+            throw new IllegalArgumentException("Vertex buffer size exceeded: offset + size > internal size: " + offset + " + " + sizeBytes + " > " + mSizeBytes);
         }
 
-        GLES20.glBufferSubData(mTarget.getTarget(), offset, size, data); GLGetError.getOpenGLErrors(mTag);
+        GLES20.glBufferSubData(mTarget.getTarget(), offset, sizeBytes, data); GLGetError.getOpenGLErrors(mTag);
     }
 
     public void bind() throws IllegalStateException {
