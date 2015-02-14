@@ -1,3 +1,6 @@
 GLESUtils.iws
 .idea/workspace.xml
 GLESUtils/build/
+.gradle/
+local.properties
+build/
