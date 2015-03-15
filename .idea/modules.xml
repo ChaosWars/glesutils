@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/GLESUtils/GLESUtils.iml" filepath="$PROJECT_DIR$/GLESUtils/GLESUtils.iml" />
-      <module fileurl="file://$PROJECT_DIR$/GLESUtilsProject.iml" filepath="$PROJECT_DIR$/GLESUtilsProject.iml" />
+      <module fileurl="file://$PROJECT_DIR$/glesutils.iml" filepath="$PROJECT_DIR$/glesutils.iml" />
     </modules>
   </component>
 </project>
